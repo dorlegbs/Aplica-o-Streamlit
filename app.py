@@ -187,14 +187,93 @@ def main():
     if rest1['flag']:
         st.image(rest1['flag'], width=120)
 
-    st.write(generate_single_insights(rest1, wb1, trends1))
+   # =========================
+# CONTROLE INTERATIVO
+# =========================
+st.subheader("🎛️ Personalize a análise")
 
-    if not wb1.empty:
-        fig = px.line(wb1, x='date', y='Internet', title="Internet ao longo do tempo")
-        st.plotly_chart(fig)
+col_opts1, col_opts2 = st.columns(2)
 
-    if not trends1.empty:
-        st.table(trends1)
+with col_opts1:
+    show_internet = st.checkbox("🌐 Acesso à Internet")
+    show_social = st.checkbox("📱 Redes Sociais")
+    show_population = st.checkbox("👥 População")
+
+with col_opts2:
+    show_trends = st.checkbox("🔥 Tendências de Busca")
+    show_style = st.checkbox("💬 Estilo de Comunicação")
+
+# =========================
+# INTERNET
+# =========================
+if show_internet:
+    with st.expander("🌐 Acesso à Internet"):
+        if not wb1.empty:
+            latest = wb1.iloc[-1]['Internet']
+            st.markdown(f"**{latest:.1f}% da população usa internet**")
+
+            fig = px.line(
+                wb1,
+                x='date',
+                y='Internet',
+                title="Evolução do uso de internet"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.warning("Sem dados disponíveis")
+
+# =========================
+# REDES SOCIAIS
+# =========================
+if show_social:
+    with st.expander("📱 Uso de Redes Sociais"):
+        if not wb1.empty:
+            social = wb1.iloc[-1]['Internet'] * 0.75
+            st.markdown(f"Estimativa: **{social:.1f}% da população**")
+        else:
+            st.warning("Sem dados suficientes")
+
+# =========================
+# POPULAÇÃO
+# =========================
+if show_population:
+    with st.expander("👥 População"):
+        pop = f"{rest1['population']:,}" if rest1['population'] else "N/A"
+        st.markdown(f"População total: **{pop}**")
+        st.markdown(f"Idiomas: {', '.join(rest1['languages'])}")
+
+# =========================
+# TENDÊNCIAS
+# =========================
+if show_trends:
+    with st.expander("🔥 Tendências de Busca"):
+        if not trends1.empty:
+            st.table(trends1)
+        else:
+            st.warning("Sem dados disponíveis")
+
+# =========================
+# ESTILO DE COMUNICAÇÃO
+# =========================
+if show_style:
+    with st.expander("💬 Estilo de Comunicação"):
+        if not trends1.empty:
+            top = trends1['Tendência'].tolist()
+
+            visual_words = ['youtube', 'tiktok', 'video', 'filme']
+            text_words = ['noticia', 'artigo', 'blog']
+
+            visual = sum(any(v in t.lower() for v in visual_words) for t in top)
+            text = sum(any(v in t.lower() for v in text_words) for t in top)
+
+            if visual > text:
+                st.success("Comunicação predominantemente **visual**")
+            elif text > visual:
+                st.info("Comunicação predominantemente **textual**")
+            else:
+                st.warning("Comunicação equilibrada")
+        else:
+            st.warning("Sem dados suficientes")
 
     # COMPARAÇÃO
     if compare:
