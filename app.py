@@ -188,14 +188,16 @@ def main():
     # =========================
     st.header(country1_name)
 
-    if rest1:
+   if rest1:
     flag_url = rest1.get('flag')
 
-    if not flag_url:
-        # fallback usando código do país
-        flag_url = f"https://flagcdn.com/w320/{rest1['cca2'].lower()}.png"
-
-    st.image(flag_url, width=120)
+    if flag_url:
+        try:
+            st.image(flag_url, width=120)
+        except:
+            st.warning("⚠️ Não foi possível carregar a bandeira")
+    else:
+        st.warning("⚠️ Bandeira não disponível para este país")
 
     # =========================
     # CONTROLE INTERATIVO
