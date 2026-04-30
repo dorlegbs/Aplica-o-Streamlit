@@ -176,106 +176,98 @@ def main():
         country2_name = st.selectbox("Segundo país", names2)
         country2 = next(c for c in countries if c[0] == country2_name)
 
+    # =========================
     # DADOS
+    # =========================
     rest1 = get_rest_country_data(country1[3])
     wb1 = get_world_bank_internet(country1[3])
     trends1 = get_google_trends(country1[2])
 
+    # =========================
     # VISUAL
+    # =========================
     st.header(country1_name)
 
-    if rest1['flag']:
+    if rest1 and rest1['flag']:
         st.image(rest1['flag'], width=120)
 
-# =========================
-# CONTROLE INTERATIVO
-# =========================
-st.subheader("🎛️ Personalize a análise")
+    # =========================
+    # CONTROLE INTERATIVO
+    # =========================
+    st.subheader("🎛️ Personalize a análise")
 
-col_opts1, col_opts2 = st.columns(2)
+    col_opts1, col_opts2 = st.columns(2)
 
-with col_opts1:
-    show_internet = st.checkbox("🌐 Acesso à Internet")
-    show_social = st.checkbox("📱 Redes Sociais")
-    show_population = st.checkbox("👥 População")
+    with col_opts1:
+        show_internet = st.checkbox("🌐 Acesso à Internet", value=True)
+        show_social = st.checkbox("📱 Redes Sociais", value=True)
+        show_population = st.checkbox("👥 População", value=True)
 
-with col_opts2:
-    show_trends = st.checkbox("🔥 Tendências de Busca")
-    show_style = st.checkbox("💬 Estilo de Comunicação")
+    with col_opts2:
+        show_trends = st.checkbox("🔥 Tendências de Busca", value=True)
+        show_style = st.checkbox("💬 Estilo de Comunicação", value=True)
 
-# =========================
-# INTERNET
-# =========================
-if show_internet:
-    with st.expander("🌐 Acesso à Internet"):
-        if not wb1.empty:
-            latest = wb1.iloc[-1]['Internet']
-            st.markdown(f"**{latest:.1f}% da população usa internet**")
+    # =========================
+    # INTERNET
+    # =========================
+    if show_internet:
+        with st.expander("🌐 Acesso à Internet"):
+            if not wb1.empty:
+                latest = wb1.iloc[-1]['Internet']
+                st.markdown(f"**{latest:.1f}% da população usa internet**")
 
-            fig = px.line(
-                wb1,
-                x='date',
-                y='Internet',
-                title="Evolução do uso de internet"
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.warning("Sem dados disponíveis")
-
-# =========================
-# REDES SOCIAIS
-# =========================
-if show_social:
-    with st.expander("📱 Uso de Redes Sociais"):
-        if not wb1.empty:
-            social = wb1.iloc[-1]['Internet'] * 0.75
-            st.markdown(f"Estimativa: **{social:.1f}% da população**")
-        else:
-            st.warning("Sem dados suficientes")
-
-# =========================
-# POPULAÇÃO
-# =========================
-if show_population:
-    with st.expander("👥 População"):
-        pop = f"{rest1['population']:,}" if rest1['population'] else "N/A"
-        st.markdown(f"População total: **{pop}**")
-        st.markdown(f"Idiomas: {', '.join(rest1['languages'])}")
-
-# =========================
-# TENDÊNCIAS
-# =========================
-if show_trends:
-    with st.expander("🔥 Tendências de Busca"):
-        if not trends1.empty:
-            st.table(trends1)
-        else:
-            st.warning("Sem dados disponíveis")
-
-# =========================
-# ESTILO DE COMUNICAÇÃO
-# =========================
-if show_style:
-    with st.expander("💬 Estilo de Comunicação"):
-        if not trends1.empty:
-            top = trends1['Tendência'].tolist()
-
-            visual_words = ['youtube', 'tiktok', 'video', 'filme']
-            text_words = ['noticia', 'artigo', 'blog']
-
-            visual = sum(any(v in t.lower() for v in visual_words) for t in top)
-            text = sum(any(v in t.lower() for v in text_words) for t in top)
-
-            if visual > text:
-                st.success("Comunicação predominantemente **visual**")
-            elif text > visual:
-                st.info("Comunicação predominantemente **textual**")
+                fig = px.line(wb1, x='date', y='Internet')
+                st.plotly_chart(fig, use_container_width=True)
             else:
-                st.warning("Comunicação equilibrada")
-        else:
-            st.warning("Sem dados suficientes")
+                st.warning("Sem dados disponíveis")
 
+    # =========================
+    # REDES SOCIAIS
+    # =========================
+    if show_social:
+        with st.expander("📱 Uso de Redes Sociais"):
+            if not wb1.empty:
+                social = wb1.iloc[-1]['Internet'] * 0.75
+                st.markdown(f"Estimativa: **{social:.1f}% da população**")
+
+    # =========================
+    # POPULAÇÃO
+    # =========================
+    if show_population:
+        with st.expander("👥 População"):
+            pop = f"{rest1['population']:,}" if rest1 and rest1['population'] else "N/A"
+            st.markdown(f"População total: **{pop}**")
+            st.markdown(f"Idiomas: {', '.join(rest1['languages'])}")
+
+    # =========================
+    # TENDÊNCIAS
+    # =========================
+    if show_trends:
+        with st.expander("🔥 Tendências de Busca"):
+            if not trends1.empty:
+                st.table(trends1)
+
+    # =========================
+    # ESTILO
+    # =========================
+    if show_style:
+        with st.expander("💬 Estilo de Comunicação"):
+            if not trends1.empty:
+                top = trends1['Tendência'].tolist()
+
+                visual = sum('youtube' in t.lower() or 'tiktok' in t.lower() for t in top)
+                text = sum('noticia' in t.lower() or 'blog' in t.lower() for t in top)
+
+                if visual > text:
+                    st.success("Comunicação visual")
+                elif text > visual:
+                    st.info("Comunicação textual")
+                else:
+                    st.warning("Comunicação equilibrada")
+
+    # =========================
     # COMPARAÇÃO
+    # =========================
     if compare:
         rest2 = get_rest_country_data(country2[3])
         wb2 = get_world_bank_internet(country2[3])
