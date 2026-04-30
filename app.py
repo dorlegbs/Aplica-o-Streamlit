@@ -1,5 +1,7 @@
 import sys
 
+pip install streamlit pandas plotly requests pytrends
+
 # Verifica pacotes obrigatórios antes de importar
 required_packages = {
     "streamlit": "streamlit",
