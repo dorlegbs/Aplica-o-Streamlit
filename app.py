@@ -187,7 +187,18 @@ def main():
     if rest1['flag']:
         st.image(rest1['flag'], width=120)
 
-    st.write(generate_single_insights(rest1, wb1, trends1))
+    st.subheader("🎛️ Personalize a análise")
+
+col_opts1, col_opts2 = st.columns(2)
+
+with col_opts1:
+    show_internet = st.checkbox("🌐 Acesso à Internet")
+    show_social = st.checkbox("📱 Redes Sociais")
+    show_population = st.checkbox("👥 População")
+
+with col_opts2:
+    show_trends = st.checkbox("🔥 Tendências de Busca")
+    show_style = st.checkbox("💬 Estilo de Comunicação")
 
     if not wb1.empty:
         fig = px.line(wb1, x='date', y='Internet', title="Internet ao longo do tempo")
