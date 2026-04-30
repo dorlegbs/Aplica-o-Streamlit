@@ -127,7 +127,8 @@ def generate_single_insights(rest, wb, trends):
 
     # DEMOGRAFIA
     pop = f"{rest['population']:,}" if rest['population'] else "N/A"
-    insights.append(f"População: {pop}. Idiomas: {', '.join(rest['languages'])}.")
+    insights.append(f"População: {pop}. 
+    Idiomas: {', '.join(rest['languages'])}.")
 
     # TRENDS
     if not trends.empty:
