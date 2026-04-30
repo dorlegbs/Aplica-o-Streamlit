@@ -188,8 +188,14 @@ def main():
     # =========================
     st.header(country1_name)
 
-    if rest1 and rest1['flag']:
-        st.image(rest1['flag'], width=120)
+    if rest1:
+    flag_url = rest1.get('flag')
+
+    if not flag_url:
+        # fallback usando código do país
+        flag_url = f"https://flagcdn.com/w320/{rest1['cca2'].lower()}.png"
+
+    st.image(flag_url, width=120)
 
     # =========================
     # CONTROLE INTERATIVO
