@@ -5,7 +5,7 @@ import requests
 from pytrends.request import TrendReq
 
 # =========================
-# MAPEAMENTO GOOGLE TRENDS
+# GOOGLE TRENDS MAP
 # =========================
 COUNTRY_MAP = {
     "BR": "brazil",
@@ -20,7 +20,7 @@ COUNTRY_MAP = {
 }
 
 # =========================
-# LISTA DE PAÍSES
+# COUNTRIES LIST
 # =========================
 @st.cache_data
 def get_all_countries():
@@ -36,7 +36,7 @@ def get_all_countries():
     return country_list
 
 # =========================
-# REST COUNTRIES (CORRIGIDO)
+# REST COUNTRIES
 # =========================
 @st.cache_data
 def get_rest_country_data(cca3):
@@ -81,12 +81,12 @@ def get_world_bank_internet(cca3):
         return pd.DataFrame()
 
 # =========================
-# GOOGLE TRENDS (CORRIGIDO)
+# GOOGLE TRENDS
 # =========================
 @st.cache_data
 def get_google_trends(cca2):
     try:
-        pn = COUNTRY_MAP.get(cca2, None)
+        pn = COUNTRY_MAP.get(cca2)
 
         if not pn:
             return pd.DataFrame()
@@ -96,66 +96,11 @@ def get_google_trends(cca2):
 
         trends = trends.head(10)
         trends.columns = ['Tendência']
-        trends['Posição'] = range(1, len(trends)+1)
+        trends['Posição'] = range(1, len(trends) + 1)
 
         return trends
     except:
         return pd.DataFrame()
-
-# =========================
-# INSIGHTS (MELHORADOS)
-# =========================
-def generate_single_insights(rest, wb, trends):
-    insights = []
-
-    # INTERNET
-    if not wb.empty:
-        latest = wb.iloc[-1]['Internet']
-        if latest > 80:
-            nivel = "alto"
-        elif latest > 50:
-            nivel = "moderado"
-        else:
-            nivel = "baixo"
-
-        insights.append(f"Acesso à internet {nivel} ({latest:.1f}%).")
-
-        social = latest * 0.75
-        insights.append(f"Uso estimado de redes sociais: {social:.1f}% da população.")
-    else:
-        insights.append("Sem dados recentes de internet.")
-
-    # DEMOGRAFIA
-    pop = f"{rest['population']:,}" if rest['population'] else "N/A"
-    insights.append(f"População: {pop}. Idiomas: {', '.join(rest['languages'])}.")
-
-    # TRENDS
-    if not trends.empty:
-        top = trends['Tendência'].tolist()[:5]
-        insights.append(f"Tendências: {', '.join(top)}.")
-
-        # ESTILO
-        visual_words = ['youtube', 'tiktok', 'video', 'filme']
-        text_words = ['noticia', 'artigo', 'blog']
-
-        visual = sum(any(v in t.lower() for v in visual_words) for t in top)
-        text = sum(any(v in t.lower() for v in text_words) for t in top)
-
-        if visual > text:
-            insights.append("Comunicação mais visual.")
-        elif text > visual:
-            insights.append("Comunicação mais textual.")
-        else:
-            insights.append("Comunicação equilibrada.")
-
-        # LIBERDADE (melhor proxy)
-        unique_words = len(set(" ".join(top).split()))
-        if unique_words > 10:
-            insights.append("Alta diversidade de temas → maior abertura informacional.")
-        else:
-            insights.append("Baixa diversidade → possível limitação informacional.")
-
-    return "\n\n".join(insights)
 
 # =========================
 # APP
@@ -166,6 +111,9 @@ def main():
     countries = get_all_countries()
     names = [c[0] for c in countries]
 
+    # =========================
+    # SELEÇÃO DE PAÍS
+    # =========================
     country1_name = st.selectbox("Escolha um país", names)
     country1 = next(c for c in countries if c[0] == country1_name)
 
@@ -184,32 +132,32 @@ def main():
     trends1 = get_google_trends(country1[2])
 
     # =========================
-    # VISUAL
+    # VISUAL PRINCIPAL
     # =========================
-
-        st.header(country1_name)
+    st.header(country1_name)
 
     if rest1:
         flag_url = rest1.get('flag')
 
+        # fallback automático
         if not flag_url:
             flag_url = f"https://flagcdn.com/w320/{rest1['cca2'].lower()}.png"
 
         st.image(flag_url, width=120)
 
     # =========================
-    # CONTROLE INTERATIVO
+    # CONTROLES
     # =========================
     st.subheader("🎛️ Personalize a análise")
 
-    col_opts1, col_opts2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
-    with col_opts1:
+    with col1:
         show_internet = st.checkbox("🌐 Acesso à Internet", value=True)
         show_social = st.checkbox("📱 Redes Sociais", value=True)
         show_population = st.checkbox("👥 População", value=True)
 
-    with col_opts2:
+    with col2:
         show_trends = st.checkbox("🔥 Tendências de Busca", value=True)
         show_style = st.checkbox("💬 Estilo de Comunicação", value=True)
 
@@ -242,7 +190,7 @@ def main():
     if show_population:
         with st.expander("👥 População"):
             pop = f"{rest1['population']:,}" if rest1 and rest1['population'] else "N/A"
-            st.markdown(f"População total: **{pop}**")
+            st.markdown(f"População: **{pop}**")
             st.markdown(f"Idiomas: {', '.join(rest1['languages'])}")
 
     # =========================
@@ -252,9 +200,11 @@ def main():
         with st.expander("🔥 Tendências de Busca"):
             if not trends1.empty:
                 st.table(trends1)
+            else:
+                st.warning("Sem dados disponíveis")
 
     # =========================
-    # ESTILO
+    # ESTILO DE COMUNICAÇÃO
     # =========================
     if show_style:
         with st.expander("💬 Estilo de Comunicação"):
@@ -265,11 +215,13 @@ def main():
                 text = sum('noticia' in t.lower() or 'blog' in t.lower() for t in top)
 
                 if visual > text:
-                    st.success("Comunicação visual")
+                    st.success("Comunicação predominantemente visual")
                 elif text > visual:
-                    st.info("Comunicação textual")
+                    st.info("Comunicação predominantemente textual")
                 else:
                     st.warning("Comunicação equilibrada")
+            else:
+                st.warning("Sem dados suficientes")
 
     # =========================
     # COMPARAÇÃO
@@ -279,17 +231,18 @@ def main():
         wb2 = get_world_bank_internet(country2[3])
         trends2 = get_google_trends(country2[2])
 
-        st.header("Comparação")
+        st.header("🔄 Comparação")
 
         col1, col2 = st.columns(2)
 
         with col1:
             st.subheader(country1_name)
-            st.write(generate_single_insights(rest1, wb1, trends1))
+            st.write(f"População: {rest1['population']:,}")
 
         with col2:
             st.subheader(country2_name)
-            st.write(generate_single_insights(rest2, wb2, trends2))
+            st.write(f"População: {rest2['population']:,}")
+
 
 # =========================
 if __name__ == "__main__":
