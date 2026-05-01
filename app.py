@@ -86,21 +86,48 @@ def get_world_bank_internet(cca3):
 @st.cache_data
 def get_google_trends(cca2):
     try:
+        pytrends = TrendReq(hl='pt-BR', tz=180)
+
         pn = COUNTRY_MAP.get(cca2)
 
-        if not pn:
-            return pd.DataFrame()
+        # 1️⃣ tenta país específico
+        if pn:
+            try:
+                trends = pytrends.trending_searches(pn=pn)
+            except:
+                trends = pd.DataFrame()
+        else:
+            trends = pd.DataFrame()
 
-        pytrends = TrendReq(hl='pt-BR', tz=180)
-        trends = pytrends.trending_searches(pn=pn)
+        # 2️⃣ fallback global se vazio
+        if trends.empty:
+            try:
+                trends = pytrends.trending_searches(pn='united_states')
+            except:
+                trends = pd.DataFrame()
+
+        # 3️⃣ fallback final manual (nunca quebra o app)
+        if trends.empty:
+            return pd.DataFrame({
+                "Tendência": [
+                    "Sem dados recentes",
+                    "Tente outro país",
+                    "Dados indisponíveis"
+                ],
+                "Posição": [1, 2, 3]
+            })
 
         trends = trends.head(10)
         trends.columns = ['Tendência']
         trends['Posição'] = range(1, len(trends) + 1)
 
         return trends
+
     except:
-        return pd.DataFrame()
+        return pd.DataFrame({
+            "Tendência": ["Erro ao carregar tendências"],
+            "Posição": [1]
+        })
 
 # =========================
 # APP
@@ -111,9 +138,9 @@ def main():
     countries = get_all_countries()
     names = [c[0] for c in countries]
 
-    # =========================
-    # SELEÇÃO DE PAÍS
-    # =========================
+# =========================
+# SELEÇÃO DE PAÍS
+# =========================
     country1_name = st.selectbox("Escolha um país", names)
     country1 = next(c for c in countries if c[0] == country1_name)
 
