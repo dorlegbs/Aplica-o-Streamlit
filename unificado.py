@@ -339,3 +339,81 @@ def main():
                 name1=rest1['name'] if rest1 else country1_name,
                 name2=rest2['name'] if rest2 else (country2_name or "")
             )
+            st.plotly_chart(fig, use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        with col_b:
+            st.markdown('<div class="section-card">'
+                        '<div class="section-title">📊 Crescimento anual</div>'
+                        '<div class="section-sub">Variação percentual anual no acesso à internet</div>',
+                        unsafe_allow_html=True)
+            fig2 = mom_growth_chart(
+                wb1, wb2 if compare else None,
+                name1=rest1['name'] if rest1 else country1_name,
+                name2=rest2['name'] if rest2 else (country2_name or "")
+            )
+            st.plotly_chart(fig2, use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    # ---------- POPULAÇÃO (barra comparativa) ----------
+    if show_population and compare and pop1 and pop2:
+        st.markdown('<div class="section-card">'
+                    '<div class="section-title">👥 Comparação de população</div>'
+                    '<div class="section-sub">Habitantes totais por país</div>',
+                    unsafe_allow_html=True)
+        fig3 = bar_comparison_chart(
+            labels=[rest1['name'], rest2['name']],
+            values=[pop1, pop2],
+            colors=['#378add', '#e28a1a'],
+        )
+        st.plotly_chart(fig3, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # ---------- REDES SOCIAIS ----------
+    if show_social:
+        st.markdown('<div class="section-card">'
+                    '<div class="section-title">📱 Estimativa de uso de redes sociais</div>'
+                    '<div class="section-sub">Estimativa baseada em 75% dos usuários de internet</div>',
+                    unsafe_allow_html=True)
+        s_cols = st.columns(2 if compare else 1)
+        with s_cols[0]:
+            if social1:
+                st.progress(int(social1), text=f"{rest1['name'] if rest1 else country1_name}: {social1:.1f}%")
+            else:
+                st.warning("Sem dados suficientes")
+        if compare and len(s_cols) > 1:
+            with s_cols[1]:
+                if social2:
+                    st.progress(int(social2), text=f"{rest2['name'] if rest2 else country2_name}: {social2:.1f}%")
+                else:
+                    st.warning("Sem dados suficientes")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # ---------- TABELA COMPARATIVA ----------
+    if compare and rest1 and rest2:
+        st.markdown('<hr class="custom-divider">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">🔄 Resumo comparativo</div>', unsafe_allow_html=True)
+        st.markdown("")
+
+        df_compare = pd.DataFrame({
+            "Indicador": ["População", "Internet (%)", "Redes sociais est. (%)", "Idiomas", "Código"],
+            rest1['name']: [
+                f"{pop1:,}" if pop1 else "N/A",
+                f"{latest1:.1f}%" if latest1 else "N/A",
+                f"{social1:.1f}%" if social1 else "N/A",
+                ', '.join(rest1['languages']),
+                rest1['cca3'],
+            ],
+            rest2['name']: [
+                f"{pop2:,}" if pop2 else "N/A",
+                f"{latest2:.1f}%" if latest2 else "N/A",
+                f"{social2:.1f}%" if social2 else "N/A",
+                ', '.join(rest2['languages']),
+                rest2['cca3'],
+            ],
+        })
+        st.dataframe(df_compare, use_container_width=True, hide_index=True)
+
+
+if __name__ == "__main__":
+    main()
