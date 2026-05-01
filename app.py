@@ -257,7 +257,7 @@ def main():
 #Cria o menu lateral onde o usuário escolhe o país principal, ativa ou desativa a comparação com um segundo país e seleciona quais métricas deseja visualizar.
     
     with st.sidebar:
-        st.markdown("### 🌍 Digital Global")
+        st.markdown("### 🌍 Comunicação Digital Global")
         st.markdown("---")
 
         st.markdown("**País principal**")
@@ -378,7 +378,7 @@ def main():
 
         with col_a:
             st.markdown('<div class="section-card">'
-                        '<div class="section-title">📈 Evolução do acesso à internet</div>'
+                        '<div class="section-title">Evolução do acesso à internet</div>'
                         '<div class="section-sub">% da população com acesso à internet ao longo dos anos</div>',
                         unsafe_allow_html=True)
             fig = internet_line_chart(
@@ -391,7 +391,7 @@ def main():
 
         with col_b:
             st.markdown('<div class="section-card">'
-                        '<div class="section-title">📊 Crescimento anual</div>'
+                        '<div class="section-title">Crescimento anual</div>'
                         '<div class="section-sub">Variação percentual anual no acesso à internet</div>',
                         unsafe_allow_html=True)
             fig2 = mom_growth_chart(
@@ -410,7 +410,7 @@ def main():
     
     if show_population and compare and pop1 and pop2:
         st.markdown('<div class="section-card">'
-                    '<div class="section-title">👥 Comparação de população</div>'
+                    '<div class="section-title">Comparação de população</div>'
                     '<div class="section-sub">Habitantes totais por país</div>',
                     unsafe_allow_html=True)
         fig3 = bar_comparison_chart(
@@ -429,7 +429,7 @@ def main():
     
     if show_social:
         st.markdown('<div class="section-card">'
-                    '<div class="section-title">📱 Estimativa de uso de redes sociais</div>'
+                    '<div class="section-title">Estimativa de uso de redes sociais</div>'
                     '<div class="section-sub">Estimativa baseada em 75% dos usuários de internet</div>',
                     unsafe_allow_html=True)
         s_cols = st.columns(2 if compare else 1)
@@ -454,7 +454,7 @@ def main():
     
     if compare and rest1 and rest2:
         st.markdown('<hr class="custom-divider">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">🔄 Resumo comparativo</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Resumo comparativo</div>', unsafe_allow_html=True)
         st.markdown("")
 
         df_compare = pd.DataFrame({
