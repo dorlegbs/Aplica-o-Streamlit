@@ -4,6 +4,8 @@ import plotly.express as px
 import requests
 from pytrends.request import TrendReq
 
+st.page_link("pages/1_Mapa_Global.py", label="🌍 Ver Mapa Global")
+
 st.title("🌍 Mapa Global de Comunicação Digital")
 
 # =========================
