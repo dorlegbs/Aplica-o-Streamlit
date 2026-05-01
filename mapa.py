@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import requests
 
-st.title("🌍 Mapa Global de Conectividade Digital")
+st.title("Mapa Global de Conectividade Digital")
 
 # =========================
 # FUNÇÕES
