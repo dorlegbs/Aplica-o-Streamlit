@@ -4,6 +4,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 import requests
 
+# =========================
+# CONFIGURAÇÕES DA INTERFACE
+# =========================
+
 st.set_page_config(
     page_title="Comunicação Digital Global",
     page_icon="🌍",
@@ -94,7 +98,7 @@ st.markdown("""
 
 
 # =========================
-# HELPERS
+# AUXILIARES (BANDEIRA)
 # =========================
 
 def get_flag_url(rest_data: dict) -> str:
@@ -227,14 +231,17 @@ def mom_growth_chart(wb1, wb2=None, name1="", name2=""):
 
 
 # =========================
-# APP
+# FUNCIONAMENTO DO APP
 # =========================
 
 def main():
     countries = get_all_countries()
     names = [c[0] for c in countries]
 
-    # ---------- SIDEBAR ----------
+# =========================
+# SIDEBAR
+# =========================
+    
     with st.sidebar:
         st.markdown("### 🌍 Digital Global")
         st.markdown("---")
@@ -264,7 +271,10 @@ def main():
         st.markdown("---")
         st.caption("Fontes: REST Countries · World Bank")
 
-    # ---------- DADOS ----------
+# =========================
+# DADOS
+# =========================
+    
     rest1 = get_rest_country_data(country1[3])
     wb1   = get_world_bank_internet(country1[3])
 
@@ -278,14 +288,20 @@ def main():
     pop1    = rest1['population'] if rest1 else None
     pop2    = rest2['population'] if rest2 else None
 
-    # ---------- CABEÇALHO ----------
+# =========================
+# CABEÇALHO
+# =========================
+    
     title_html = f"📊 {country1_name}"
     if compare and country2_name:
         title_html += f' <span class="badge-compare">⇄ Comparando com {country2_name}</span>'
     st.markdown(f'<div class="page-title">{title_html}</div>', unsafe_allow_html=True)
     st.markdown('<div class="page-subtitle">Análise de conectividade e comunicação digital</div>', unsafe_allow_html=True)
 
-    # ---------- BANDEIRA(S) ----------
+# =========================
+# BANDEIRAS
+# =========================
+    
     if rest1:
         flag_cols = st.columns([1, 8]) if not compare else st.columns([1, 1, 6])
         with flag_cols[0]:
@@ -296,7 +312,10 @@ def main():
 
     st.markdown('<hr class="custom-divider">', unsafe_allow_html=True)
 
-    # ---------- MÉTRICAS ----------
+# =========================
+# MÉTRICAS
+# =========================
+    
     metric_cols = st.columns(4)
 
     if show_population:
@@ -326,7 +345,10 @@ def main():
 
     st.markdown("")
 
-    # ---------- GRÁFICOS PRINCIPAIS ----------
+# =========================
+# GRÁFICOS
+# =========================
+    
     if show_internet and not wb1.empty:
         col_a, col_b = st.columns(2)
 
@@ -356,7 +378,10 @@ def main():
             st.plotly_chart(fig2, use_container_width=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
-    # ---------- POPULAÇÃO (barra comparativa) ----------
+# =========================
+# BARRA COMPARATIVA (POPULAÇÃO)
+# =========================
+    
     if show_population and compare and pop1 and pop2:
         st.markdown('<div class="section-card">'
                     '<div class="section-title">👥 Comparação de população</div>'
@@ -370,7 +395,10 @@ def main():
         st.plotly_chart(fig3, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # ---------- REDES SOCIAIS ----------
+# =========================
+# REDES SOCIAIS
+# =========================
+    
     if show_social:
         st.markdown('<div class="section-card">'
                     '<div class="section-title">📱 Estimativa de uso de redes sociais</div>'
@@ -390,7 +418,10 @@ def main():
                     st.warning("Sem dados suficientes")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # ---------- TABELA COMPARATIVA ----------
+# =========================
+# TABELA COMPARATIVA
+# =========================
+    
     if compare and rest1 and rest2:
         st.markdown('<hr class="custom-divider">', unsafe_allow_html=True)
         st.markdown('<div class="section-title">🔄 Resumo comparativo</div>', unsafe_allow_html=True)
