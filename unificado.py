@@ -197,8 +197,9 @@ def bar_comparison_chart(labels, values, colors):
         text=[f"{v:,.0f}" for v in values],
         textposition='outside',
     ))
-    fig.update_layout(**CHART_LAYOUT, height=220,
-                      yaxis=dict(showgrid=False, showticklabels=False, linecolor="#e8e8e8"))
+    layout = {**CHART_LAYOUT, 'height': 220}
+    layout['yaxis'] = dict(showgrid=False, showticklabels=False, linecolor="#e8e8e8")
+    fig.update_layout(**layout)
     return fig
 
 def mom_growth_chart(wb1, wb2=None, name1="", name2=""):
