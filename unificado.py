@@ -338,3 +338,4 @@ def main():
                 wb1, wb2 if compare else None,
                 name1=rest1['name'] if rest1 else country1_name,
                 name2=rest2['name'] if rest2 else (country2_name or "")
+            )
