@@ -8,6 +8,8 @@ import requests
 # CONFIGURAÇÕES DA INTERFACE
 # =========================
 
+# Define as configurações globais da página (título e ícone da aba) e aplica um estilo visual customizado usando CSS para modificar cores, fontes e o layout dos cartões.
+
 st.set_page_config(
     page_title="Comunicação Digital Global",
     page_icon="🌍",
@@ -101,6 +103,8 @@ st.markdown("""
 # AUXILIARES (BANDEIRA)
 # =========================
 
+# Contém uma função auxiliar que gera a URL da imagem da bandeira do país selecionado através do FlagCDN.
+
 def get_flag_url(rest_data: dict) -> str:
     if not rest_data:
         return ""
@@ -112,6 +116,8 @@ def get_flag_url(rest_data: dict) -> str:
 # DADOS
 # =========================
 
+#Obtém a lista de todos os países da API REST Countries.
+
 @st.cache_data
 def get_all_countries():
     response = requests.get("https://restcountries.com/v3.1/all?fields=name,cca2,cca3,translations")
@@ -122,6 +128,8 @@ def get_all_countries():
         country_list.append((pt_name, c['name']['common'], c['cca2'], c['cca3']))
     country_list.sort(key=lambda x: x[0])
     return country_list
+
+#Busca detalhes específicos de um país (idiomas, população).
 
 @st.cache_data
 def get_rest_country_data(cca3):
@@ -139,6 +147,8 @@ def get_rest_country_data(cca3):
         }
     except:
         return None
+
+#Usa a API do World Bank para obter o histórico de acesso à internet ao longo dos anos.
 
 @st.cache_data
 def get_world_bank_internet(cca3):
@@ -234,6 +244,8 @@ def mom_growth_chart(wb1, wb2=None, name1="", name2=""):
 # FUNCIONAMENTO DO APP
 # =========================
 
+#Inicia a função principal (main) e carrega a lista inicial de nomes de países que serão usados nos menus de seleção.
+
 def main():
     countries = get_all_countries()
     names = [c[0] for c in countries]
@@ -241,6 +253,8 @@ def main():
 # =========================
 # SIDEBAR
 # =========================
+
+#Cria o menu lateral onde o usuário escolhe o país principal, ativa ou desativa a comparação com um segundo país e seleciona quais métricas deseja visualizar.
     
     with st.sidebar:
         st.markdown("### 🌍 Digital Global")
@@ -274,6 +288,8 @@ def main():
 # =========================
 # DADOS
 # =========================
+
+#Executa as chamadas de API para os países selecionados e realiza cálculos estatísticos, como a estimativa de usuários de redes sociais (baseada em 75% dos usuários de internet).
     
     rest1 = get_rest_country_data(country1[3])
     wb1   = get_world_bank_internet(country1[3])
@@ -291,6 +307,8 @@ def main():
 # =========================
 # CABEÇALHO
 # =========================
+
+#Renderiza o título dinâmico da página, que muda conforme os países selecionados, e adiciona o subtítulo da aplicação.
     
     title_html = f"📊 {country1_name}"
     if compare and country2_name:
@@ -301,6 +319,8 @@ def main():
 # =========================
 # BANDEIRAS
 # =========================
+
+#Exibe as imagens das bandeiras dos países escolhidos no topo da página para identificação visual rápida.
     
     if rest1:
         flag_cols = st.columns([1, 8]) if not compare else st.columns([1, 1, 6])
@@ -315,6 +335,8 @@ def main():
 # =========================
 # MÉTRICAS
 # =========================
+
+#Apresenta os números principais (população, % de internet, idiomas) em cartões destacados, mostrando a diferença (delta) caso a comparação esteja ativada.
     
     metric_cols = st.columns(4)
 
@@ -348,6 +370,8 @@ def main():
 # =========================
 # GRÁFICOS
 # =========================
+
+#Gera e exibe visualmente a evolução histórica do acesso à internet e o crescimento anual, organizando-os em duas colunas.
     
     if show_internet and not wb1.empty:
         col_a, col_b = st.columns(2)
@@ -381,6 +405,8 @@ def main():
 # =========================
 # BARRA COMPARATIVA (POPULAÇÃO)
 # =========================
+
+#Cria um gráfico de barras específico para comparar visualmente o tamanho das populações entre os dois países selecionados.
     
     if show_population and compare and pop1 and pop2:
         st.markdown('<div class="section-card">'
@@ -398,6 +424,8 @@ def main():
 # =========================
 # REDES SOCIAIS
 # =========================
+
+#Mostra barras de progresso que representam a porcentagem estimada da população que utiliza redes sociais em cada país.
     
     if show_social:
         st.markdown('<div class="section-card">'
@@ -421,6 +449,8 @@ def main():
 # =========================
 # TABELA COMPARATIVA
 # =========================
+
+#Gera uma tabela final de resumo com todos os dados e indicadores lado a lado.
     
     if compare and rest1 and rest2:
         st.markdown('<hr class="custom-divider">', unsafe_allow_html=True)
