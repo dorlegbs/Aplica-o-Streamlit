@@ -1,2 +1,2 @@
-# Aplica-o-Streamlit
+# Comunicação Digital Global
 Try
