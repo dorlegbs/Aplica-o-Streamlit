@@ -2,22 +2,22 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import requests
-from pytrends.request import TrendReq
 
 # =========================
-# GOOGLE TRENDS MAP
+# CONFIG
 # =========================
-COUNTRY_MAP = {
-    "BR": "brazil",
-    "US": "united_states",
-    "JP": "japan",
-    "FR": "france",
-    "DE": "germany",
-    "GB": "united_kingdom",
-    "IN": "india",
-    "CA": "canada",
-    "AU": "australia"
+st.set_page_config(layout="wide")
+
+# =========================
+# STYLE (visual mais clean)
+# =========================
+st.markdown("""
+<style>
+.block-container {
+    padding-top: 2rem;
 }
+</style>
+""", unsafe_allow_html=True)
 
 # =========================
 # COUNTRIES LIST
@@ -44,23 +44,20 @@ def get_rest_country_data(cca3):
         url = f"https://restcountries.com/v3.1/alpha/{cca3}"
         data = requests.get(url).json()[0]
 
-        languages = list(data.get('languages', {}).values()) or ["Não disponível"]
-
         return {
             'name': data['name']['common'],
             'pt_name': data.get('translations', {}).get('por', {}).get('common', data['name']['common']),
             'population': data.get('population'),
-            'languages': languages,
+            'languages': list(data.get('languages', {}).values()) or ["N/A"],
             'region': data.get('region', 'N/A'),
             'cca2': data.get('cca2'),
-            'cca3': data.get('cca3'),
             'flag': data.get('flags', {}).get('png', '')
         }
     except:
         return None
 
 # =========================
-# WORLD BANK
+# WORLD BANK (Internet)
 # =========================
 @st.cache_data
 def get_world_bank_internet(cca3):
@@ -81,74 +78,25 @@ def get_world_bank_internet(cca3):
         return pd.DataFrame()
 
 # =========================
-# GOOGLE TRENDS
-# =========================
-@st.cache_data
-def get_google_trends(cca2):
-    try:
-        pytrends = TrendReq(hl='pt-BR', tz=180)
-
-        pn = COUNTRY_MAP.get(cca2)
-
-        # 1️⃣ tenta país específico
-        if pn:
-            try:
-                trends = pytrends.trending_searches(pn=pn)
-            except:
-                trends = pd.DataFrame()
-        else:
-            trends = pd.DataFrame()
-
-        # 2️⃣ fallback global se vazio
-        if trends.empty:
-            try:
-                trends = pytrends.trending_searches(pn='united_states')
-            except:
-                trends = pd.DataFrame()
-
-        # 3️⃣ fallback final manual (nunca quebra o app)
-        if trends.empty:
-            return pd.DataFrame({
-                "Tendência": [
-                    "Sem dados recentes",
-                    "Tente outro país",
-                    "Dados indisponíveis"
-                ],
-                "Posição": [1, 2, 3]
-            })
-
-        trends = trends.head(10)
-        trends.columns = ['Tendência']
-        trends['Posição'] = range(1, len(trends) + 1)
-
-        return trends
-
-    except:
-        return pd.DataFrame({
-            "Tendência": ["Erro ao carregar tendências"],
-            "Posição": [1]
-        })
-
-# =========================
 # APP
 # =========================
 def main():
-    st.title("🌍 Comunicação Digital Global")
-
     countries = get_all_countries()
     names = [c[0] for c in countries]
 
-# =========================
-# SELEÇÃO DE PAÍS
-# =========================
-    country1_name = st.selectbox("Escolha um país", names)
+    # =========================
+    # SIDEBAR
+    # =========================
+    st.sidebar.title("🎛️ Filtros")
+
+    country1_name = st.sidebar.selectbox("🌍 País", names)
     country1 = next(c for c in countries if c[0] == country1_name)
 
-    compare = st.checkbox("Comparar com outro país")
+    compare = st.sidebar.checkbox("Comparar países")
 
     if compare:
         names2 = [n for n in names if n != country1_name]
-        country2_name = st.selectbox("Segundo país", names2)
+        country2_name = st.sidebar.selectbox("Segundo país", names2)
         country2 = next(c for c in countries if c[0] == country2_name)
 
     # =========================
@@ -156,99 +104,53 @@ def main():
     # =========================
     rest1 = get_rest_country_data(country1[3])
     wb1 = get_world_bank_internet(country1[3])
-    trends1 = get_google_trends(country1[2])
 
     # =========================
-    # VISUAL PRINCIPAL
+    # HEADER
     # =========================
-    st.header(country1_name)
+    st.title("🌍 Comunicação Digital Global")
 
-    if rest1:
-        flag_url = rest1.get('flag')
-
-        # fallback automático
-        if not flag_url:
-            flag_url = f"https://flagcdn.com/w320/{rest1['cca2'].lower()}.png"
-
-        st.image(flag_url, width=120)
+    if rest1 and rest1['flag']:
+        st.image(rest1['flag'], width=100)
 
     # =========================
-    # CONTROLES
+    # CARDS (KPIs)
     # =========================
-    st.subheader("🎛️ Personalize a análise")
+    if rest1 and not wb1.empty:
+        internet = wb1.iloc[-1]['Internet']
+        population = rest1['population']
+        social = internet * 0.75
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("🌐 Internet", f"{internet:.1f}%")
+        col2.metric("📱 Social (estimado)", f"{social:.1f}%")
+        col3.metric("👥 População", f"{population:,}")
+
+    # =========================
+    # GRÁFICOS
+    # =========================
+    st.subheader("📊 Análise")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        show_internet = st.checkbox("🌐 Acesso à Internet", value=True)
-        show_social = st.checkbox("📱 Redes Sociais", value=True)
-        show_population = st.checkbox("👥 População", value=True)
+        if not wb1.empty:
+            fig = px.line(
+                wb1,
+                x='date',
+                y='Internet',
+                title="Uso de Internet ao longo do tempo"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.warning("Sem dados de internet")
 
     with col2:
-        show_trends = st.checkbox("🔥 Tendências de Busca", value=True)
-        show_style = st.checkbox("💬 Estilo de Comunicação", value=True)
-
-    # =========================
-    # INTERNET
-    # =========================
-    if show_internet:
-        with st.expander("🌐 Acesso à Internet"):
-            if not wb1.empty:
-                latest = wb1.iloc[-1]['Internet']
-                st.markdown(f"**{latest:.1f}% da população usa internet**")
-
-                fig = px.line(wb1, x='date', y='Internet')
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.warning("Sem dados disponíveis")
-
-    # =========================
-    # REDES SOCIAIS
-    # =========================
-    if show_social:
-        with st.expander("📱 Uso de Redes Sociais"):
-            if not wb1.empty:
-                social = wb1.iloc[-1]['Internet'] * 0.75
-                st.markdown(f"Estimativa: **{social:.1f}% da população**")
-
-    # =========================
-    # POPULAÇÃO
-    # =========================
-    if show_population:
-        with st.expander("👥 População"):
-            pop = f"{rest1['population']:,}" if rest1 and rest1['population'] else "N/A"
-            st.markdown(f"População: **{pop}**")
-            st.markdown(f"Idiomas: {', '.join(rest1['languages'])}")
-
-    # =========================
-    # TENDÊNCIAS
-    # =========================
-    if show_trends:
-        with st.expander("🔥 Tendências de Busca"):
-            if not trends1.empty:
-                st.table(trends1)
-            else:
-                st.warning("Sem dados disponíveis")
-
-    # =========================
-    # ESTILO DE COMUNICAÇÃO
-    # =========================
-    if show_style:
-        with st.expander("💬 Estilo de Comunicação"):
-            if not trends1.empty:
-                top = trends1['Tendência'].tolist()
-
-                visual = sum('youtube' in t.lower() or 'tiktok' in t.lower() for t in top)
-                text = sum('noticia' in t.lower() or 'blog' in t.lower() for t in top)
-
-                if visual > text:
-                    st.success("Comunicação predominantemente visual")
-                elif text > visual:
-                    st.info("Comunicação predominantemente textual")
-                else:
-                    st.warning("Comunicação equilibrada")
-            else:
-                st.warning("Sem dados suficientes")
+        if rest1:
+            st.markdown("### 🌎 Informações Gerais")
+            st.write(f"**Região:** {rest1['region']}")
+            st.write(f"**Idiomas:** {', '.join(rest1['languages'])}")
 
     # =========================
     # COMPARAÇÃO
@@ -256,19 +158,33 @@ def main():
     if compare:
         rest2 = get_rest_country_data(country2[3])
         wb2 = get_world_bank_internet(country2[3])
-        trends2 = get_google_trends(country2[2])
 
-        st.header("🔄 Comparação")
+        st.subheader("🔄 Comparação")
 
         col1, col2 = st.columns(2)
 
         with col1:
-            st.subheader(country1_name)
-            st.write(f"População: {rest1['population']:,}")
+            st.markdown(f"### {country1_name}")
+            if not wb1.empty:
+                st.metric("Internet", f"{wb1.iloc[-1]['Internet']:.1f}%")
 
         with col2:
-            st.subheader(country2_name)
-            st.write(f"População: {rest2['population']:,}")
+            st.markdown(f"### {country2_name}")
+            if not wb2.empty:
+                st.metric("Internet", f"{wb2.iloc[-1]['Internet']:.1f}%")
+
+        # gráfico comparativo
+        if not wb1.empty and not wb2.empty:
+            df_compare = pd.merge(
+                wb1[['date', 'Internet']],
+                wb2[['date', 'Internet']],
+                on='date',
+                how='inner',
+                suffixes=(f'_{country1_name}', f'_{country2_name}')
+            )
+
+            fig = px.line(df_compare, x='date', y=df_compare.columns[1:])
+            st.plotly_chart(fig, use_container_width=True)
 
 
 # =========================
