@@ -12,7 +12,6 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* Sidebar escura */
     [data-testid="stSidebar"] {
         background-color: #1a1d23;
     }
@@ -29,14 +28,10 @@ st.markdown("""
     [data-testid="stSidebar"] hr {
         border-color: rgba(255,255,255,0.08);
     }
-
-    /* Fundo principal */
     .main .block-container {
         padding-top: 2rem;
         max-width: 1200px;
     }
-
-    /* Título da página */
     .page-title {
         font-size: 1.6rem;
         font-weight: 600;
@@ -48,36 +43,12 @@ st.markdown("""
         color: #888;
         margin-bottom: 1.5rem;
     }
-
-    /* Cards de métricas */
     .metric-card {
         background: #ffffff;
         border: 1px solid #e8e8e8;
         border-radius: 10px;
         padding: 1rem 1.25rem;
     }
-    .metric-label {
-        font-size: 0.75rem;
-        color: #888;
-        margin-bottom: 0.25rem;
-    }
-    .metric-value {
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: #1a1d23;
-    }
-    .metric-delta-up {
-        font-size: 0.78rem;
-        color: #2a9e5c;
-        font-weight: 500;
-    }
-    .metric-delta-down {
-        font-size: 0.78rem;
-        color: #d94f4f;
-        font-weight: 500;
-    }
-
-    /* Cards de seção */
     .section-card {
         background: #ffffff;
         border: 1px solid #e8e8e8;
@@ -96,8 +67,6 @@ st.markdown("""
         color: #aaa;
         margin-bottom: 1rem;
     }
-
-    /* Badge de comparação */
     .badge-compare {
         display: inline-block;
         background: #e6f0ff;
@@ -109,24 +78,12 @@ st.markdown("""
         margin-left: 10px;
         vertical-align: middle;
     }
-
-    /* Remover borda padrão dos st.metric */
     [data-testid="metric-container"] {
         background: #ffffff;
         border: 1px solid #e8e8e8;
         border-radius: 10px;
         padding: 1rem 1.25rem;
     }
-
-    /* Bandeira */
-    .flag-container {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 1rem;
-    }
-
-    /* Divider */
     .custom-divider {
         border: none;
         border-top: 1px solid #f0f0f0;
@@ -134,6 +91,17 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+
+# =========================
+# HELPERS
+# =========================
+
+def get_flag_url(rest_data: dict) -> str:
+    if not rest_data:
+        return ""
+    cca2 = (rest_data.get('cca2') or '').lower()
+    return f"https://flagcdn.com/w320/{cca2}.png"
 
 
 # =========================
@@ -302,12 +270,12 @@ def main():
     rest2 = get_rest_country_data(country2[3]) if country2 else None
     wb2   = get_world_bank_internet(country2[3]) if country2 else pd.DataFrame()
 
-    latest1     = wb1.iloc[-1]['Internet'] if not wb1.empty else None
-    latest2     = wb2.iloc[-1]['Internet'] if not wb2.empty else None
-    social1     = latest1 * 0.75 if latest1 else None
-    social2     = latest2 * 0.75 if latest2 else None
-    pop1        = rest1['population'] if rest1 else None
-    pop2        = rest2['population'] if rest2 else None
+    latest1 = wb1.iloc[-1]['Internet'] if not wb1.empty else None
+    latest2 = wb2.iloc[-1]['Internet'] if not wb2.empty else None
+    social1 = latest1 * 0.75 if latest1 else None
+    social2 = latest2 * 0.75 if latest2 else None
+    pop1    = rest1['population'] if rest1 else None
+    pop2    = rest2['population'] if rest2 else None
 
     # ---------- CABEÇALHO ----------
     title_html = f"📊 {country1_name}"
@@ -320,12 +288,10 @@ def main():
     if rest1:
         flag_cols = st.columns([1, 8]) if not compare else st.columns([1, 1, 6])
         with flag_cols[0]:
-            flag_url = rest1.get('flag') or f"https://flagcdn.com/w320/{rest1['cca2'].lower()}.png"
-            st.image(flag_url, width=80)
+            st.image(get_flag_url(rest1), width=80)
         if compare and rest2:
             with flag_cols[1]:
-                flag_url2 = rest2.get('flag') or f"https://flagcdn.com/w320/{rest2['cca2'].lower()}.png"
-                st.image(flag_url2, width=80)
+                st.image(get_flag_url(rest2), width=80)
 
     st.markdown('<hr class="custom-divider">', unsafe_allow_html=True)
 
@@ -372,82 +338,3 @@ def main():
                 wb1, wb2 if compare else None,
                 name1=rest1['name'] if rest1 else country1_name,
                 name2=rest2['name'] if rest2 else (country2_name or "")
-            )
-            st.plotly_chart(fig, use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with col_b:
-            st.markdown('<div class="section-card">'
-                        '<div class="section-title">📊 Crescimento mês a mês</div>'
-                        '<div class="section-sub">Variação percentual anual no acesso à internet</div>',
-                        unsafe_allow_html=True)
-            fig2 = mom_growth_chart(
-                wb1, wb2 if compare else None,
-                name1=rest1['name'] if rest1 else country1_name,
-                name2=rest2['name'] if rest2 else (country2_name or "")
-            )
-            st.plotly_chart(fig2, use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-    # ---------- POPULAÇÃO (barra comparativa) ----------
-    if show_population and compare and pop1 and pop2:
-        st.markdown('<div class="section-card">'
-                    '<div class="section-title">👥 Comparação de população</div>'
-                    '<div class="section-sub">Habitantes totais por país</div>',
-                    unsafe_allow_html=True)
-        fig3 = bar_comparison_chart(
-            labels=[rest1['name'], rest2['name']],
-            values=[pop1, pop2],
-            colors=['#378add', '#e28a1a'],
-        )
-        st.plotly_chart(fig3, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # ---------- REDES SOCIAIS ----------
-    if show_social:
-        st.markdown('<div class="section-card">'
-                    '<div class="section-title">📱 Estimativa de uso de redes sociais</div>'
-                    '<div class="section-sub">Estimativa baseada em 75% dos usuários de internet</div>',
-                    unsafe_allow_html=True)
-        s_cols = st.columns(2 if compare else 1)
-        with s_cols[0]:
-            if social1:
-                st.progress(int(social1), text=f"{rest1['name'] if rest1 else country1_name}: {social1:.1f}%")
-            else:
-                st.warning("Sem dados suficientes")
-        if compare and len(s_cols) > 1:
-            with s_cols[1]:
-                if social2:
-                    st.progress(int(social2), text=f"{rest2['name'] if rest2 else country2_name}: {social2:.1f}%")
-                else:
-                    st.warning("Sem dados suficientes")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # ---------- TABELA COMPARATIVA ----------
-    if compare and rest1 and rest2:
-        st.markdown('<hr class="custom-divider">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">🔄 Resumo comparativo</div>', unsafe_allow_html=True)
-        st.markdown("")
-
-        df_compare = pd.DataFrame({
-            "Indicador": ["População", "Internet (%)", "Redes sociais est. (%)", "Idiomas", "Código"],
-            rest1['name']: [
-                f"{pop1:,}" if pop1 else "N/A",
-                f"{latest1:.1f}%" if latest1 else "N/A",
-                f"{social1:.1f}%" if social1 else "N/A",
-                ', '.join(rest1['languages']),
-                rest1['cca3'],
-            ],
-            rest2['name']: [
-                f"{pop2:,}" if pop2 else "N/A",
-                f"{latest2:.1f}%" if latest2 else "N/A",
-                f"{social2:.1f}%" if social2 else "N/A",
-                ', '.join(rest2['languages']),
-                rest2['cca3'],
-            ],
-        })
-        st.dataframe(df_compare, use_container_width=True, hide_index=True)
-
-
-if __name__ == "__main__":
-    main()
