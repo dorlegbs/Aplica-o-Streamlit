@@ -363,7 +363,7 @@ def main():
             )
     with metric_cols[3]:
         lang_str = ', '.join(rest1['languages'][:2]) if rest1 else "N/A"
-        st.metric(label="🗣️ Idiomas", value=lang_str)
+        st.metric(label="Idiomas", value=lang_str)
 
     st.markdown("")
 
