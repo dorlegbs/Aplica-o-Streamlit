@@ -278,9 +278,9 @@ def main():
         st.markdown("---")
 
         st.markdown("**Exibir**")
-        show_internet   = st.checkbox("🌐 Acesso à Internet", value=True)
-        show_social     = st.checkbox("📱 Redes Sociais (est.)", value=True)
-        show_population = st.checkbox("👥 População", value=True)
+        show_internet   = st.checkbox("Acesso à Internet", value=True)
+        show_social     = st.checkbox("Redes Sociais (est.)", value=True)
+        show_population = st.checkbox("População", value=True)
 
         st.markdown("---")
         st.caption("Fontes: REST Countries · World Bank")
@@ -310,7 +310,7 @@ def main():
 
 #Renderiza o título dinâmico da página, que muda conforme os países selecionados, e adiciona o subtítulo da aplicação.
     
-    title_html = f"📊 {country1_name}"
+    title_html = f" {country1_name}"
     if compare and country2_name:
         title_html += f' <span class="badge-compare">⇄ Comparando com {country2_name}</span>'
     st.markdown(f'<div class="page-title">{title_html}</div>', unsafe_allow_html=True)
