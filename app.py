@@ -338,34 +338,31 @@ def main():
 
 #Apresenta os números principais (população, % de internet, idiomas) em cartões destacados, mostrando a diferença (delta) caso a comparação esteja ativada.
     
-    metric_cols = st.columns(4)
+# =========================
+# MÉTRICAS (SEM EMOJIS E SEM DELTAS)
+# =========================
 
     if show_population:
         with metric_cols[0]:
             st.metric(
-                label=f"👥 População — {rest1['name'] if rest1 else ''}",
+                label=f"População — {rest1['name'] if rest1 else ''}",
                 value=f"{pop1:,}" if pop1 else "N/A",
-                delta=f"vs {pop2:,}" if pop2 else None,
+                delta=None, # Define como None para remover a seta
             )
     if show_internet:
         with metric_cols[1]:
             st.metric(
-                label=f"🌐 Internet — {rest1['name'] if rest1 else ''}",
+                label=f"Internet — {rest1['name'] if rest1 else ''}",
                 value=f"{latest1:.1f}%" if latest1 else "N/A",
-                delta=f"{latest1 - latest2:+.1f}pp vs {rest2['name']}" if (latest1 and latest2) else None,
+                delta=None, # Remove a comparação percentual
             )
     if show_social:
         with metric_cols[2]:
             st.metric(
-                label="📱 Redes Sociais (est.)",
+                label="Redes Sociais (est.)",
                 value=f"{social1:.1f}%" if social1 else "N/A",
-                delta=f"{social1 - social2:+.1f}pp" if (social1 and social2) else None,
+                delta=None, # Remove a seta de comparação
             )
-    with metric_cols[3]:
-        lang_str = ', '.join(rest1['languages'][:2]) if rest1 else "N/A"
-        st.metric(label="🗣️ Idiomas", value=lang_str)
-
-    st.markdown("")
 
 # =========================
 # GRÁFICOS
